@@ -105,14 +105,15 @@ Consequently, the advantage of the elastic net penalty is that it **enables effe
 #install.packages("vip")
 #install.packages("tidymodels")
 
-library(tidymodels)
+library(tidymodels) #family of packages for ML workflow
 library(tidyverse)
-library(glmnet)
+library(glmnet) #to implement elastic net
 library(vip)
 
 ```
 
 ```{r weather}
+
 weather <- read_csv("../data/weather_monthsum.csv")
 
 weather
@@ -137,34 +138,46 @@ Here's where we perform **data split** and **data processing**.
 For data split, let's use **70% training / 30% testing**.
 
 ```{r weather_split}
+
 # Setting seed to get reproducible results  
-set.seed(931735)
+set.seed(931735) #to make sure that our results are reproducible
 
 # Setting split level  
-weather_split 
+weather_split <- initial_split(weather, 
+                               prop = .7,
+                               strata = strength_gtex #to do a stratified sampling based on our predicted variable "strength_gtex"; if we do not do this, by random chance we can have
+                               )
 
 weather_split
+
 ```
 
 
 ```{r weather_train}
-# Setting train set 
-weather_train 
 
-weather_train
+# Setting train set 
+weather_train <- training(weather_split)
+
+weather_train #training data frame
+
 ```
+
 How many observations?
 
 ```{r weather_test}
+
 # Setting test split
-weather_test 
+weather_test <- testing(weather_split)
 
 weather_test
+
 ```
 How many observations?  
 
-Let's check the distribution of our predicted variable **strength_gtex** across training and testing: 
+Let's check the distribution of our predicted variable **strength_gtex** across training and testing:  
+
 ```{r distribution}
+
 ggplot() +
   geom_density(data = weather_train, 
                aes(x = strength_gtex),
@@ -173,7 +186,9 @@ ggplot() +
                aes(x = strength_gtex),
                color = "blue") 
   
+
 ```
+
 Let's go back to the split chunk and use **stratified sampling** based on our predicted variable **strength_gtex**.
 
 
@@ -191,7 +206,7 @@ Before training, we need to perform some processing steps, like
   - removing columns with single value  
   - others?  
 
-For that, we'll create a **recipe** of these processing steps. 
+For that, we'll create a **recipe** of these processing steps. ["recipe" is a term which is very specific to "tidymodels"] 
 
 This recipe will then be applied now to the **train data**, and easily applied to the **test data** when we bring it back at the end.
 
@@ -200,16 +215,22 @@ Creating a recipe is as easy way to port your processing steps for other data se
 Different model types require different processing steps.  
 Let's check what steps are required for an elastic net model (linear_reg).
 We can search for that in this link: https://www.tmwr.org/pre-proc-table  
+
 You can find all available recipe step options here: https://tidymodels.github.io/recipes/reference/index.html
 
+
 ```{r weather_recipe}
-weather_recipe 
+weather_recipe <-
   # Defining predicted and predictor variables
-
+  recipe(strength_gtex ~ .,
+          data = weather_train) %>% # . is used to indicate all predictor variables #the outcome is specified as "strength_gtex"
+  
   # Removing year, site, and weather outside of growing season  
-
+  step_rm(year, site, 
+          matches("Jan|Feb|Mar|Apr|Nov|Dec") #to remove all columns that have these months as part of their names
+          )
   # Decorrelating
-  #step_pca(all_numeric(), -all_outcomes(), num_comp = 7)
+  #step_pca(all_numeric(), -all_outcomes(), num_comp = 7) #we need 7 PCs to explain 80% total variance in this case
 
 weather_recipe
 ```
@@ -217,9 +238,12 @@ weather_recipe
 Now that we have our recipe ready, we **need to apply it** to the training data in a process called prepping:
 
 ```{r weather_prep}
-weather_prep 
 
-weather_prep
+weather_prep <- weather_recipe %>%
+  prep()
+
+weather_prep #Trained data
+
 ```
 
 
@@ -235,17 +259,20 @@ An elastic net model is a linear regression model, penalized.
 
 Elastic net **hyperparameters**:  
   - **penalty**: equivalent to lambda  
-  - **mixture**: 0 (ridge) to 1 (lasso)  
+  - **mixture**: 0 (ridge) to 1 (lasso) [can be anywhere from 0 to 1]   
 
 Let's create a model specification that will **fine-tune** these for us.
 
 A given model type can be fit with different engines (e.g., through different packages). Here, we'll use the **glmnet** engine/package.  
   
 ```{r enet_spec}
-enet_spec  
+enet_spec  <- 
   # Specifying linear regression as our model type, asking to tune the hyperparameters
-
+  linear_reg(penalty = tune(),
+             mixture = tune()
+             ) %>%
   # Specify the engine
+  set_engine("glmnet")
 
 
 enet_spec
@@ -270,6 +297,12 @@ Our grid has **121** potential combinations of mixture and penalty.
 
 ```{r}
 
+ggplot(data = enet_grid,
+       aes(x = mixture,
+           y = penalty)
+       ) +
+  geom_point()
+
 ```
 
 For our grid search, we need:  
@@ -279,31 +312,48 @@ For our grid search, we need:
   - Our **resampling strategy** (don't have yet)  
   
 Let's define our resampling strategy below, using a 10-fold cross validation approach:  
+
 ```{r resampling_foldcv}
-resampling_foldcv 
+
+resampling_foldcv <- vfold_cv(weather_train,
+                              v = 10)
 
 resampling_foldcv
-resampling_foldcv$splits[[1]]
+
+resampling_foldcv$splits[[1]] #On the 1st fold, we have 438 for training, and 49 for assessment
+#resampling_foldcv$splits[[2]]
+
 ```
+
 On each fold, we'll use **437** observations for training and **49** observations to assess performance.    
 
 Now, let's perform the grid search below:  
+
 ```{r enet_grid_result}
-enet_grid_result 
+
+enet_grid_result <- tune_grid(enet_spec,
+                              preprocessor = weather_recipe,
+                              grid = enet_grid,
+                              resamples = resampling_foldcv
+                              )
 
 enet_grid_result
+enet_grid_result$.metrics[[1]]
 
 ```
 
-Why 242 rows?
-121 (each a combination of mixture and penalty) x 2 (2 assessment metrics)  
+Why 242 rows?  
+
+121 (each a combination of mixture and penalty) x 2 (2 assessment metrics: rmse, rsq)  
 
 Let's collect a summary of metrics (across all folds, for each mixture x penalty combination), and plot them.  
 
-Firs, RMSE (lower is better):
+Firs, RMSE (lower is better):  
+
 ```{r RMSE}
+
 enet_grid_result %>%
-  ... 
+  collect_metrics() %>% #this line will come in exam as fill in the blanks 
   filter(.metric == "rmse") %>%
   ggplot(aes(x = penalty, 
              y = mean, 
@@ -312,9 +362,10 @@ enet_grid_result %>%
   geom_line() +
   geom_point() + 
   labs(y = "RMSE")
+  
 ```
 
-What penalty and mixture values created lowest RMSE?  
+What penalty and mixture values created lowest RMSE?  rewatch video
 
 Now, let's look into R2 (higher is better):  
 
@@ -330,6 +381,7 @@ enet_grid_result %>%
   geom_point() + 
   labs(y = "R2")
 ```
+
 What penalty and mixture values created lowest RMSE?  
 It seems that our best model is with hyperparameters set to:  
   - mixture = 0  
@@ -337,29 +389,38 @@ It seems that our best model is with hyperparameters set to:
   
 Let's extract the hyperparameters from the best model as judged by 2 performance metrics:  
 ```{r}
+
 # Based on lowest RMSE
-best_rmse 
+best_rmse <- enet_grid_result %>%
+  select_best(metric = "rmse")
 
 best_rmse
+
 ```
 
 ```{r}
+
 # Based on greatest R2
-best_r2 
+best_r2 <- enet_grid_result %>%
+  select_best(metric = "rsq")
 
 best_r2
 
 ```
-Based on RMSE, we would choose mixture = 0, penalty = 0.
+Based on RMSE, we would choose mixture = 0, penalty = 1.
 
-Based on R2, we would choose mixture = 0, penalty = 0.7.
+Based on R2, we would choose mixture = 0.1, penalty = 1.
 
 Let's use the hyperparameter values that optimized R2 to fit our final model.
 
 ```{r final_spec}
-final_spec 
+
+final_spec <- linear_reg(penalty = tune(penalty = 0.7,
+                                        mixture = 0)) %>%
+  set_engine("glmnet")
 
 final_spec
+
 ```
 
 ## 3. Validation  
@@ -372,15 +433,23 @@ This means 2 things:
 These 2 steps can be completed in one function, as below:  
 
 ```{r final_fit}
-final_fit 
+
+final_fit <- last_fit(final_spec,
+                      weather_recipe,
+                      split = weather_split 
+                      )
 
 final_fit %>%
   collect_predictions()
+
 ```
 Why 212 observations?  
 
 Metrics on the **test set**:
 ```{r}
+
+final_fit %>%
+  collect_metrics()
 
 ```
 
@@ -416,30 +485,36 @@ Why?
 Predicted vs. observed plot:  
 ```{r}
 final_fit %>%
-  ...
-  ggplot(aes(x = ...,
-             y = ...)) +
+  collect_predictions() %>%  #will come in exam
+  ggplot(aes(x = strength_gtex, #will come in exam
+             y = .pred)) + #will come in exam
   geom_point() +
-  geom_...() +
+  geom_abline() + #will come in exam
   geom_smooth(method = "lm") +
   scale_x_continuous(limits = c(20, 40)) +
   scale_y_continuous(limits = c(20, 40)) 
 ```
 
+We always want to see this plot in Machine Learning.
+
 Coefficients:  
 ```{r}
 final_spec %>%
   fit(strength_gtex ~ .,
-         data = bake(weather_prep, weather)) 
+         data = bake(weather_prep, weather)) %>%
+  tidy() %>%
+  arrange(desc(estimate))
 
 ```
 
 Variable importance:  
+
 ```{r}
+
 final_spec %>%
   fit(strength_gtex ~ .,
          data = bake(weather_prep, weather)) %>%
-    ... %>%
+    vi() %>%  #will come in exam
   mutate(
     Importance = abs(Importance),
     Variable = fct_reorder(Variable, 
@@ -464,7 +539,7 @@ In this exercise, we covered:
   - Used `recipes` to process data
   - Used `rsamples` to split data  
   - Used a fixed grid to search the best values for mixture and penalty  
-  - Used 5-fold cross validation as the resampling method  
+  - Used 10-fold cross validation as the resampling method  
   - Used both R2 and RMSE as the metrics to select best model  
   - Once final model was determined, used it to predict **test set**  
   - Evaluated it with predicted vs. observed plot, R2 and RMSE metrics, and variable importance  
