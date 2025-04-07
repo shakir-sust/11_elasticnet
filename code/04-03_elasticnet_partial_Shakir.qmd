@@ -264,13 +264,14 @@ You can find all available recipe step options here: https://tidymodels.github.i
 
 
 ```{r weather_recipe}
+
 weather_recipe <-
   # Defining predicted and predictor variables
   recipe(strength_gtex ~ ., # . is used to indicate all predictor variables should be included in the model (we have 73 predictor variables in this data set)
           data = weather_train) %>%  #note that we are using the training data in this recipe
   # Removing year, site, and weather outside of growing season  
-  step_rm(year, site, #although we could have used dplyr::select, but we used step_rm() because it is within the scope of the recipe
-          matches("Jan|Feb|Mar|Apr|Nov|Dec") #to remove all columns that have these months as part of their names
+  step_rm(year, site, #rm in step_rm() stands for remove #although we could have used dplyr::select, but we used step_rm() because it is within the scope of "recipes" #we want to remove year and site from our training set
+          matches("Jan|Feb|Mar|Apr|Nov|Dec") #to remove weather variables that represent data outside of the growing season: Jan, Feb, Mar, Apr, Nov, Dec  #matches("Jan|Feb|Mar|Apr|Nov|Dec"): to remove all columns that have these months (Jan, Feb, Mar, Apr, Nov, Dec) as part of their (column) names
           )
   # Decorrelating
   #step_pca(all_numeric(), -all_outcomes(), num_comp = 7) #"num_comp = 7": to keep 7 PCs because we need 7 PCs to explain 80% total variance in this case (but it could be any number up to 72)
