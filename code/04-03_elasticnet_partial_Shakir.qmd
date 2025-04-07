@@ -174,7 +174,7 @@ set.seed(931735) #setting seed to make sure that we get reproducible results
 # Setting split level  
 weather_split <- initial_split(weather, 
                                prop = .7, #to specify the proportion that goes into training: 0.7 for 70% training/ 30% testing #if we specified prop = .8, it would represent 80% training/ 20% testing
-                               strata = strength_gtex #to do a stratified sampling based on our predicted variable "strength_gtex"; if we do not do this, by random chance we can have
+                               strata = strength_gtex #strata = strength_gtex: to do a stratified sampling based on our predicted (y) variable "strength_gtex"; how stratified sampling works: imagine we have a distribution of our entire 698 rows of "strength_gtex", it's basically creating bins of quantiles across the distribution and then doing the 70%/30% split within each bin to make sure that same proportion of different bins within our distribution are going to training and test. If we do not do stratified sampling, it could happen that just by random chance we get really low values of strength in our testing, and really medium or high values in our training, which is data shift (when we have a different data distribution of our predicted variable across training and test) and we do NOT want data shift. We want our training and testing to have similar data distribution for our predicted variable, so we can make sure we create a model that can predict unseen data. So, doing stratified sampling on our predicted variable "strength_gtex", we avoid data shift.
                                )
 
 weather_split
@@ -183,6 +183,10 @@ weather_split
 The output does not look like a data frame. It's just telling us what's gonna happen with our data. It's telling us that we have a total of 698 rows, and 487 of these rows are gonna go to training, and 210 is going to testing.
 
 Next, in the following 2 chunks, we are gonna retrieve those 487 rows in training set, and 211 in testing set, then assign those data frames to their own objects. 
+
+*Very important note on data shift and stratified sampling:* 
+
+**weather_split <- initial_split(weather, prop = .7, strata = strength_gtex)**: to do a stratified sampling based on our predicted (y) variable "strength_gtex"; how stratified sampling works: imagine we have a distribution of our entire 698 rows of "strength_gtex", it's basically creating bins of quantiles across the distribution and then doing the 70%/30% split within each bin to make sure that same proportion of different bins within our distribution are going to training and test. If we do not do stratified sampling, it could happen that just by random chance we get really low values of strength in our testing, and really medium or high values in our training, which is data shift (when we have a different data distribution of our predicted variable across training and test) and we do NOT want data shift. We want our training and testing to have similar data distribution for our predicted variable, so we can make sure we create a model that can predict unseen data. So, doing stratified sampling on our predicted variable "strength_gtex", we avoid data shift.
 
 
 ```{r weather_train}
@@ -206,8 +210,7 @@ weather_test  #weather_test" is the object containing testing set/ data frame
 ```
 How many observations?  211 [same as <Training/*Testing*/Total> = <487/*211*/698>]
 
-
-[Very important note: Data shift can happen due to many different reasons. One of the ways to check for data shift is to check the distribution of our testing and training data, especially related to our predicted variable, in this case "strength_gtex".]
+[Very important note: Data shift can happen due to many different reasons (e.g., due to randomness). One of the ways to check for data shift is to check the distribution of our testing and training data, especially related to our predicted variable, in this case "strength_gtex".]
 
 Let's check the distribution of our predicted variable **strength_gtex** across training and testing (to check for data shift):  
 
@@ -227,6 +230,10 @@ ggplot() +
 We see that the distribution of our predicted variable "strength_gtex" across our training and testing data is almost similar with no strong mismatch (i.e., it's not bad, it could have been worse) given the fact that we did a completely random sample in which 70% went to the training and 30% went to the testing. If there was a more mismatch (i.e,. not a good agreement) between the distribution of the training and testing data, it would indicate a data shift which we could fix by conducting stratified sampling based on our predicted variable "strength_gtex" [need to specify "strata = strength_gtex" inside the "initial_split()" function; full code: weather_split <- initial_split(weather, prop = .7, strata = strength_gtex) ]. We can specify any variable inside "strata = " argument, it does not always has to be the y/predicted/response variable
 
 If we did not do stratified sampling, it could happen that just by random chance we could get really low values of "strength_gtex" in our testing set and really medium and high values of "strength_gtex" in our training set, which is data shift (in which we have a different data distribution of our predicted variable across training and testing sets which we do not want to have; what we want to have is a similar data distribution of the predicted variable so that we can make a model that can predict unseen data, which we can obtain by doing a stratified sampling on our predicted variable "strength_gtex") 
+
+*Very important note on data shift and stratified sampling:* 
+
+**weather_split <- initial_split(weather, prop = .7, strata = strength_gtex)**: to do a stratified sampling based on our predicted (y) variable "strength_gtex"; how stratified sampling works: imagine we have a distribution of our entire 698 rows of "strength_gtex", it's basically creating bins of quantiles across the distribution and then doing the 70%/30% split within each bin to make sure that same proportion of different bins within our distribution are going to training and test. If we do not do stratified sampling, it could happen that just by random chance we get really low values of strength in our testing, and really medium or high values in our training, which is data shift (when we have a different data distribution of our predicted variable across training and test) and we do NOT want data shift. We want our training and testing to have similar data distribution for our predicted variable, so we can make sure we create a model that can predict unseen data. So, doing stratified sampling on our predicted variable "strength_gtex", we avoid data shift.
 
 Let's go back to the split chunk and use **stratified sampling** based on our predicted variable **strength_gtex**.
 
