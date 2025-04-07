@@ -173,14 +173,16 @@ set.seed(931735) #setting seed to make sure that we get reproducible results
 
 # Setting split level  
 weather_split <- initial_split(weather, 
-                               prop = .7, #to specify 70% training/ 30% testing #if we specified prop = .8, it would represent 80% trainin/ 20% testing
+                               prop = .7, #to specify the proportion that goes into training: 0.7 for 70% training/ 30% testing #if we specified prop = .8, it would represent 80% training/ 20% testing
                                strata = strength_gtex #to do a stratified sampling based on our predicted variable "strength_gtex"; if we do not do this, by random chance we can have
                                )
 
 weather_split
 
 ```
+The output does not look like a data frame. It's just telling us what's gonna happen with our data. It's telling us that we have a total of 698 rows, and 487 of these rows are gonna go to training, and 210 is going to testing.
 
+Next, in the following 2 chunks, we are gonna retrieve those 487 rows in training set, and 211 in testing set, then assign those data frames to their own objects. 
 
 
 ```{r weather_train}
