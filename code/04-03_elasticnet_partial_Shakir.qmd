@@ -90,7 +90,7 @@ In one sentence: LASSO can set the coefficients to 0 to do a variable selection 
 *Difference between Ridge and LASSO in terms of λ:* The λ for L1 (LASSO) ranges from 0-1, whereas the λ for L2 (Ridge) does not have a limit, it can go to infinity. 
 
 ## Lasso penalty (L1)  
-The lasso (least absolute shrinkage and selection operator) penalty is an alternative to the ridge penalty that requires only a small modification. The only difference is that we swap out the  
+The LASSO (least absolute shrinkage and selection operator) penalty is an alternative to the ridge penalty that requires only a small modification. The only difference is that we swap out the  
 L2 norm for an L1 norm.  
 
 $$ minimize (SSE + L1) $$
