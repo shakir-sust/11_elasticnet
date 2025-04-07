@@ -231,7 +231,7 @@ Different model types require different processing steps.
 Let's check what steps are required for an elastic net model (linear_reg).
 We can search for that in this link: https://www.tmwr.org/pre-proc-table  
 
-In our case, the elastic net model type that we are gonna run is "linear_reg" (linear regressinon). From Table A.1 (Preprocessing methods for different models) of the chapter in the e-book (link mentioned above: https://www.tmwr.org/pre-proc-table), the recommended pre-processing steps for "linear_reg" model are dummy (creating dummy variables, this applies when we have categorical predictor variables; in our case we do not have any categorical variables as all of our predictor variables are numerical, so we don't have to do that in our case), zv (stands for zero variance; this is required when we have a column as a predictor that has only 1 value:  )
+In our case, the elastic net model type that we are gonna run is "linear_reg" (linear regressinon). From Table A.1 (Preprocessing methods for different models) of the chapter in the e-book (link mentioned above: https://www.tmwr.org/pre-proc-table), the recommended pre-processing steps for "linear_reg" model are dummy (creating dummy variables, this applies when we have categorical predictor variables; in our case we do not have any categorical variables as all of our predictor variables are numerical, so we don't have to do that in our case), zv (stands for zero variance; this is required when we have a column as a predictor that has only 1 value: for example, there is a column that only contains the number 1 from top of the column to all the way down, so there is 0 variance in the column as all entry is the same i.e., number 1. We don't have that in our data, so we don't have to worry about applying the zv [zero variance] step). Next, the table also recommends to apply some sort of imputation steps if we have NA (i.e., missing values) in any of our columns. We do not have any NAs in any of our columns, so we don't have to do the "impute" step because we don't have any NAs. Next, the table recommends to do "decorrelate" which is done through PCA. We will see how to do if even though I'm gonna ask we don't do it here because of a specific reason that we will see in the end, but it is recommending to do a "decorrelate" through PCA if we are using "linear_reg". All these steps are model specific and changes from model to model.    
 
 You can find all available recipe step options here: https://tidymodels.github.io/recipes/reference/index.html
 
@@ -239,15 +239,14 @@ You can find all available recipe step options here: https://tidymodels.github.i
 ```{r weather_recipe}
 weather_recipe <-
   # Defining predicted and predictor variables
-  recipe(strength_gtex ~ .,
-          data = weather_train) %>% # . is used to indicate all predictor variables #the outcome is specified as "strength_gtex"
-  
+  recipe(strength_gtex ~ ., # . is used to indicate all predictor variables should be included in the model (we have 73 predictor variables in this data set)
+          data = weather_train) %>%  #note that we are using the training data in this recipe
   # Removing year, site, and weather outside of growing season  
-  step_rm(year, site, 
-          matches("Jan|Feb|Apr|Nov|Dec") #to remove all columns that have these months as part of their names
+  step_rm(year, site, #although we could have used dplyr::select, but we used step_rm() because it is within the scope of the recipe
+          matches("Jan|Feb|Mar|Apr|Nov|Dec") #to remove all columns that have these months as part of their names
           )
   # Decorrelating
-  #step_pca(all_numeric(), -all_outcomes(), num_comp = 7) #we need 7 PCs to explain 80% total variance in this case
+  #step_pca(all_numeric(), -all_outcomes(), num_comp = 7) #"num_comp = 7": to keep 7 PCs because we need 7 PCs to explain 80% total variance in this case (but it could be any number up to 72)
 
 ```
 
