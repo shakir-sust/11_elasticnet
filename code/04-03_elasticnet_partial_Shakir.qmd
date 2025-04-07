@@ -637,7 +637,7 @@ In this exercise, we covered:
   - Used `rsamples` to split data  
   - Used a fixed grid to search the best values for mixture and penalty  
   - Used 10-fold cross validation as the resampling method  
-  - Used both R2 and RMSE as the metrics to select best model  
+  - Used both R2 and RMSE as the metrics (on the training data only; on the different folds of the training data) to select best model  
   - Once final model was determined, used it to predict **test set**  
   - Evaluated it with predicted vs. observed plot, R2 and RMSE metrics, and variable importance  
   
