@@ -3,6 +3,14 @@ title: "Elastic Net"
 format: html
 ---
 
+Very Important Note:
+
+**To learn any Machine Learning model, we need to know:**
+- what the model does
+- how the model works
+- what key hyperparamters it has
+
+
 # Learning objectives  
 Our learning objectives are to:  
   - Understand linear regression penalization types 
@@ -12,7 +20,7 @@ Our learning objectives are to:
     - evaluate model predictability 
 
 # Introduction  
-As we previously learned, linear regression models can suffer from **multicollinearity** when two or more predictor variables (i.e., x variabels) are highly correlated. Elastic net is also a linear regression model.  
+As we previously learned, linear regression models can suffer from **multicollinearity** when two or more predictor variables (i.e., x variabels) are highly correlated. *Elastic net is also a linear regression model.*  
 
 The methods we mentioned to overcome multicollinearity include:  
   - Dimensionality reduction (e.g., PCA)  
@@ -24,9 +32,13 @@ One approach to use models to perform variable selection is through applying a *
 
 In **linear regression** (which is fit with ordinary least squares-OLS, prone to multicollinearity), model coefficients are estimated by MINIMIZING the **sum of squares of the error** (SSE), which is the sum of all square distances from each observation to the regression line (observed - predicted = residual).  
 
+Note: The blue line is the best fit line that minimizes the sum of squares of error (SSE)
+
 ![](https://bradleyboehmke.github.io/HOML/06-regularized-regression_files/figure-html/hyperplane-1.png)  
 
 $$ minimize(SSE) $$
+
+For every regression model, what we are trying to optimize is to minimize the Sum of Squares of Error (SSE).   
 
 In **regularized linear regression**, penalties are applied on the SSE.
 
@@ -55,7 +67,11 @@ When λ = 0, there is no effect and our objective function equals the normal ord
 
 However, as λ → ∞, the penalty becomes large and forces the coefficients toward zero (but not all the way), as in the figure below. 
 
+[Note: Beta j is gonna be the different slopes that you will have for for different variables. Imagine that we have a model in which fiber strength (y) is explained by all 74 weather variables (74 x variables/ 74 predictor variables), each one of these x variables will have a beta which is the slope for each of the predictor (x) variables]
+
 ![](https://bradleyboehmke.github.io/HOML/06-regularized-regression_files/figure-html/ridge-coef-example-1.png)
+
+[Note: In the above graph, coefficients = slope values]
 
 However, ridge regression does not perform feature selection and will **retain all available features in the final model**.   
 
