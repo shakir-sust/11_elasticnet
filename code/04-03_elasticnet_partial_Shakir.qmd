@@ -12,7 +12,7 @@ Our learning objectives are to:
     - evaluate model predictability 
 
 # Introduction  
-As we previously learned, linear regression models can suffer from **multicollinearity** when two or more predictor variables are highly correlated. Elastic net is also a linear regression model.  
+As we previously learned, linear regression models can suffer from **multicollinearity** when two or more predictor variables (i.e., x variabels) are highly correlated. Elastic net is also a linear regression model.  
 
 The methods we mentioned to overcome multicollinearity include:  
   - Dimensionality reduction (e.g., PCA)  
@@ -63,6 +63,14 @@ Therefore, a ridge model is good if you believe there is a need to retain all fe
 
 If greater interpretation is necessary and many of the features are redundant or irrelevant then a lasso or elastic net penalty may be preferable.
 
+## Very Important Note:
+
+*Ridge vs. Lasso:* One key difference between Ridge compared to LASSO penalty is that Ridge does not perform variable selection (i.e., Ridge does not set any coefficients to 0; it only brings the coefficients really close to 0, for example 0.0001 will be the slope. But it will be never actually be 0). One of the benefits of using Ridge is that you sill retain all of your variables, you just force some of them to be more important than the others. But all the variable are still in your model. So, if you believe that there is a need to retain all of your x variables, but you still want to reduce the effect of multicollinearity and the noise that creates in your model, maybe Ridge is the best for you. So, it's still keeping all those x variables, none of them are excluded but some of them are losing importance because their coefficients are being shrunk.
+
+In one sentence: LASSO can set the coefficients to 0 to do a variable selection for you, whereas Ridge never sets the coefficients completely to 0 , instead Ridge operates by bringing/shrinking some of the coefficients to be near 0 (really close to 0 e.g., 0.0001). Ridge regression does not perform feature selection and will retain all available features in the final model. 
+
+*Difference between Ridge and LASSO in terms of λ:* The λ for L1 (LASSO) ranges from 0-1, whereas the λ for L2 (Ridge) does not have a limit, it can go to infinity. 
+
 ## Lasso penalty (L1)  
 The lasso (least absolute shrinkage and selection operator) penalty is an alternative to the ridge penalty that requires only a small modification. The only difference is that we swap out the  
 L2 norm for an L1 norm.  
@@ -90,22 +98,25 @@ $$ minimize (SSE + L2 + L1) $$
 
 Although lasso models perform feature selection, when two strongly correlated features are pushed towards zero, one may be pushed fully to zero while the other remains in the model. Furthermore, the process of one being in and one being out is not very systematic.   
 
-In contrast, the ridge regression penalty is a little more effective in systematically handling correlated features together.   
+In contrast, the ridge regression penalty is a little more effective in systematically handling correlated features together.  
+
+[Note: In Elastic Net, both Ridge and LASSO work together: all the variables are shrunk close to 0 by Ridge, then set to 0 by LASSO.]
 
 Consequently, the advantage of the elastic net penalty is that it **enables effective regularization** via the ridge penalty with the **feature selection** characteristics of the lasso penalty, as in the figure below:    
 
 ![](https://bradleyboehmke.github.io/HOML/06-regularized-regression_files/figure-html/elastic-net-coef-example-1.png)
 
 # Setup  
+
 ```{r}
 #| message: false
 #| warning: false
 
-#install.packages("glmnet")
-#install.packages("vip")
-#install.packages("tidymodels")
+#install.packages("glmnet") #"glmnet" package is used to implement elastic net
+#install.packages("vip") #"vip" package is used to look into variable importance across different machine learning models
+#install.packages("tidymodels") #"tidymodels" is a family of packages developed by tideverse that help us implement machine learning workflow in R, where each package have different roles in this workflow
 
-library(tidymodels) #family of packages for ML workflow
+library(tidymodels) #family of packages for ML workflow in R
 library(tidyverse)
 library(glmnet) #to implement elastic net
 library(vip)
@@ -140,11 +151,11 @@ For data split, let's use **70% training / 30% testing**.
 ```{r weather_split}
 
 # Setting seed to get reproducible results  
-set.seed(931735) #to make sure that our results are reproducible
+set.seed(931735) #setting seed to make sure that we get reproducible results
 
 # Setting split level  
 weather_split <- initial_split(weather, 
-                               prop = .7,
+                               prop = .7, #to specify 70% training/ 30% testing #if we specified prop = .8, it would represent 80% trainin/ 20% testing
                                strata = strength_gtex #to do a stratified sampling based on our predicted variable "strength_gtex"; if we do not do this, by random chance we can have
                                )
 
@@ -157,9 +168,9 @@ weather_split
 ```{r weather_train}
 
 # Setting train set 
-weather_train <- training(weather_split)
+weather_train <- training(weather_split) #"training()" function is from rsamples package; inside the "training()" function, we specify the split dataset "weather_split"
 
-weather_train #training data frame
+weather_train #weather_train" is the training data frame
 
 ```
 
@@ -168,36 +179,39 @@ How many observations?
 ```{r weather_test}
 
 # Setting test split
-weather_test <- testing(weather_split)
+weather_test <- testing(weather_split) #inside the "testing()" function, we specify the split dataset "weather_split"
 
 weather_test
 
 ```
 How many observations?  
 
-Let's check the distribution of our predicted variable **strength_gtex** across training and testing:  
+
+[Very important note: Data shift can happen due to many different reasons. One of the ways to check for data shift is to check the distribution of our testing and training data, especially related to our predicted variable, in this case "strength_gtex".]
+
+Let's check the distribution of our predicted variable **strength_gtex** across training and testing (to check for data shift):  
 
 ```{r distribution}
 
 ggplot() +
   geom_density(data = weather_train, 
                aes(x = strength_gtex),
-               color = "red") +
+               color = "red") + #density plot for the training set
   geom_density(data = weather_test, 
                aes(x = strength_gtex),
-               color = "blue") 
+               color = "blue") #density plot for the testing set
   
 
 ```
 
+We see that the distribution of our predicted variable "strength_gtex" across our training and testing data is almost similar with no strong mismatch (i.e., it's not bad, it could have been worse) given the fact that we did a completely random sample in which 70% went to the training and 30% went to the testing. If there was a more mismatch (i.e,. not a good agreement) between the distribution of the training and testing data, it would indicate a data shift which we could fix by conducting stratified sampling based on our predicted variable "strength_gtex" [need to specify "strata = strength_gtex" inside the "initial_split()" function; full code: weather_split <- initial_split(weather, prop = .7, strata = strength_gtex) ]. We can specify any variable inside "strata = " argument, it does not always has to be the y/predicted/response variable
+
+If we did not do stratified sampling, it could happen that just by random chance we could get really low values of "strength_gtex" in our testing set and really medium and high values of "strength_gtex" in our training set, which is data shift (in which we have a different data distribution of our predicted variable across training and testing sets which we do not want to have; what we want to have is a similar data distribution of the predicted variable so that we can make a model that can predict unseen data, which we can obtain by doing a stratified sampling on our predicted variable "strength_gtex") 
+
 Let's go back to the split chunk and use **stratified sampling** based on our predicted variable **strength_gtex**.
-
-
 
 Now, we put our **test set** aside and continue with our **train set** for training.  
 
-
-  
 ### b. Data processing  
 Before training, we need to perform some processing steps, like  
   - **removing unimportant variables**  
@@ -211,11 +225,13 @@ For that, we'll create a **recipe** of these processing steps. ["recipe" is a te
 
 This recipe will then be applied now to the **train data**, and easily applied to the **test data** when we bring it back at the end.
 
-Creating a recipe is as easy way to port your processing steps for other data sets without needing to repeat code, and also only considering the data it is being applied to.  
+Creating a recipe is as easy way to port your (pre-)processing steps for other data sets without needing to repeat code, and also only considering the data it is being applied to.  
 
 Different model types require different processing steps.  
 Let's check what steps are required for an elastic net model (linear_reg).
 We can search for that in this link: https://www.tmwr.org/pre-proc-table  
+
+In our case, the elastic net model type that we are gonna run is "linear_reg" (linear regressinon). From Table A.1 (Preprocessing methods for different models) of the chapter in the e-book (link mentioned above: https://www.tmwr.org/pre-proc-table), the recommended pre-processing steps for "linear_reg" model are dummy (creating dummy variables, this applies when we have categorical predictor variables; in our case we do not have any categorical variables as all of our predictor variables are numerical, so we don't have to do that in our case), zv (stands for zero variance; this is required when we have a column as a predictor that has only 1 value:  )
 
 You can find all available recipe step options here: https://tidymodels.github.io/recipes/reference/index.html
 
