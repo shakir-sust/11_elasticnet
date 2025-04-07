@@ -83,6 +83,8 @@ If greater interpretation is necessary and many of the features are redundant or
 
 *Ridge vs. Lasso:* One key difference between Ridge compared to LASSO penalty is that Ridge does not perform variable selection (i.e., Ridge does not set any coefficients to 0; it only brings the coefficients really close to 0, for example 0.0001 will be the slope. But it will be never actually be 0). One of the benefits of using Ridge is that you sill retain all of your variables, you just force some of them to be more important than the others. But all the variable are still in your model. So, if you believe that there is a need to retain all of your x variables, but you still want to reduce the effect of multicollinearity and the noise that creates in your model, maybe Ridge is the best for you. So, it's still keeping all those x variables, none of them are excluded but some of them are losing importance because their coefficients are being shrunk.
 
+However, if you want better interpretation out of the model and you know that some features are redundant or irrelevant and you don't need all of them, using LASSO or ealstic net (ENET: combines Ridge and LASSO) will be preferable.
+
 In one sentence: LASSO can set the coefficients to 0 to do a variable selection for you, whereas Ridge never sets the coefficients completely to 0 , instead Ridge operates by bringing/shrinking some of the coefficients to be near 0 (really close to 0 e.g., 0.0001). Ridge regression does not perform feature selection and will retain all available features in the final model. 
 
 *Difference between Ridge and LASSO in terms of λ:* The λ for L1 (LASSO) ranges from 0-1, whereas the λ for L2 (Ridge) does not have a limit, it can go to infinity. 
