@@ -106,7 +106,7 @@ Whereas the ridge penalty pushes variables to approximately but not equal to zer
 
 ![](https://bradleyboehmke.github.io/HOML/06-regularized-regression_files/figure-html/lasso-coef-example-1.png)
 
-Switching to the lasso penalty not only improves the model but it also **conducts automated feature selection**.
+Switching to the lasso penalty (L1) not only improves the model but it also **conducts automated feature selection**.
 
 ##  Ridge + Lasso = Elastic net  
 
