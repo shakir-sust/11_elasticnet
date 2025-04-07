@@ -267,27 +267,27 @@ Now, we're ready to start the model training process!
 ## 2. Training  
 ### a. Model specification  
 First, let's specify:  
-  - the **type of model** we want to train  
-  - which **engine** we want to use  
+  - the **type of model** we want to train [e.g., random forest]  
+  - which **engine** we want to use ["engine" is the package that we specify to implement random forest] 
 
 An elastic net model is a linear regression model, penalized.  
 
 Elastic net **hyperparameters**:  
   - **penalty**: equivalent to lambda  
-  - **mixture**: 0 (ridge) to 1 (lasso) [can be anywhere from 0 to 1]   
+  - **mixture**: 0 (ridge) to 1 (lasso) ["mixture" can be anywhere in between 0 to 1]   
 
-Let's create a model specification that will **fine-tune** these for us.
+Let's create a model specification that will **fine-tune** these for us [i.e., controlling for model complexity].
 
 A given model type can be fit with different engines (e.g., through different packages). Here, we'll use the **glmnet** engine/package.  
   
 ```{r enet_spec}
 enet_spec  <- 
   # Specifying linear regression as our model type, asking to tune the hyperparameters
-  linear_reg(penalty = tune(),
-             mixture = tune()
-             ) %>%
+  linear_reg(penalty = tune(), #The 2 hyperparameters are: "penalty = ", "mixture = "
+             mixture = tune() #"tune()" function fine-tunes "penalty" and "mixture" hyperparameters for us
+             ) %>% #"linear_reg()" is the overall model type #thisfunction comes from "parsenip" package
   # Specify the engine
-  set_engine("glmnet")
+  set_engine("glmnet") #set_engine("glmnet"): The engine here specifies which package (glmnet, in this case) we specifically want to use to apply the "linear_reg" model type #Engine = specific package that we want to use to model the model type
 
 
 enet_spec
@@ -295,15 +295,21 @@ enet_spec
 Notice how the main arguments above do not have a value **yet**, because they will be tuned.  
 
 ### b. Hyper-parameter tuning  
+
+[Note: There are 2 ways of doing fine-tuning: one is to create a fixed grid, the other one is to create a sequential search of a given grid. Today we are gonna implement the fixed grid approach.]
+
 Now, let's create a **grid** to perform our hyperparameter tuninig search with multiple combinations of values for penalty and mixture:
 
 ```{r enet_grid}
 enet_grid <- crossing(penalty = seq(0, 
                                     10, 
-                                    by = 1),
+                                    by = 1), 
                       mixture = seq(0, 
                                     1, 
                                     by = 0.1))
+
+#seq(0, 10, by = 1): gives a sequence [for both "penalty" and "mixture"] starting at 0 and then going till 10 in increments of 1: 0  1  2  3  4  5  6  7  8  9 10
+#"crossing()" function: to get all potential combinations for all those 10 values for "penalty" and "mixture"; there are 121 combinations for all the values that we created above for "penalty" and "mixture"
 
 enet_grid
 ```
@@ -313,8 +319,8 @@ Our grid has **121** potential combinations of mixture and penalty.
 ```{r}
 
 ggplot(data = enet_grid,
-       aes(x = mixture,
-           y = penalty)
+       aes(x = mixture, #mixture = column of the "enet_grid" dataframe
+           y = penalty) #penalty = column of the "enet_grid" dataframe
        ) +
   geom_point()
 
