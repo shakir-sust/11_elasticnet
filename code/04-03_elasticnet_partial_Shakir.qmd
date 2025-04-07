@@ -114,7 +114,7 @@ A generalization of the ridge and lasso penalties, called the elastic net, **com
 
 $$ minimize (SSE + L2 + L1) $$
 
-Although lasso models perform feature selection, when two strongly correlated features are pushed towards zero, one may be pushed fully to zero while the other remains in the model. Furthermore, the process of one being in and one being out is not very systematic.   
+Although lasso models perform feature selection, when two strongly correlated features (= x variables) are pushed towards zero, one may be pushed fully to zero while the other remains in the model. Furthermore, the process of one being in and one being out is not very systematic.   
 
 In contrast, the ridge regression penalty is a little more effective in systematically handling correlated features together.  
 
