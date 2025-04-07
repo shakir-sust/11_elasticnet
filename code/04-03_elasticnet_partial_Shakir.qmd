@@ -190,21 +190,21 @@ Next, in the following 2 chunks, we are gonna retrieve those 487 rows in trainin
 # Setting train set 
 weather_train <- training(weather_split) #"training()" function is from rsamples package; inside the "training()" function, we specify the split dataset "weather_split"
 
-weather_train #weather_train" is the training data frame
+weather_train #weather_train" is the object containing training set/ data frame
 
 ```
 
-How many observations?
+How many observations? 487 [same as <*Training*/Testing/Total> = <*487*/211/698>]
 
 ```{r weather_test}
 
 # Setting test split
 weather_test <- testing(weather_split) #inside the "testing()" function, we specify the split dataset "weather_split"
 
-weather_test
+weather_test  #weather_test" is the object containing testing set/ data frame
 
 ```
-How many observations?  
+How many observations?  211 [same as <Training/*Testing*/Total> = <487/*211*/698>]
 
 
 [Very important note: Data shift can happen due to many different reasons. One of the ways to check for data shift is to check the distribution of our testing and training data, especially related to our predicted variable, in this case "strength_gtex".]
