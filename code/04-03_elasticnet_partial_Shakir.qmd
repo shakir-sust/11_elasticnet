@@ -297,14 +297,14 @@ Now, we're ready to start the model training process!
 ## 2. Training  
 ### a. Model specification  
 First, let's specify:  
-  - the **type of model** we want to train [e.g., random forest]  
+  - the **type of model** we want to train [e.g., elastic net, Conditional inference tree, random forest etc.]  
   - which **engine** we want to use ["engine" is the package that we specify to implement random forest] 
 
 An elastic net model is a linear regression model, penalized.  
 
 Elastic net **hyperparameters**:  
   - **penalty**: equivalent to lambda  
-  - **mixture**: 0 (ridge) to 1 (lasso) ["mixture" can be anywhere in between 0 to 1]   
+  - **mixture**: 0 to 1 [how much mixture you are bringing from ridge and LASSO into your model; "mixture" can be anywhere in between 0 to 1; if mixture = 0, then it's ridge; if mixture = 1, then it's LASSO]   
 
 Let's create a model specification that will **fine-tune** these for us [i.e., controlling for model complexity].
 
@@ -312,9 +312,9 @@ A given model type can be fit with different engines (e.g., through different pa
   
 ```{r enet_spec}
 enet_spec  <- 
-  # Specifying linear regression as our model type, asking to tune the hyperparameters
-  linear_reg(penalty = tune(), #The 2 hyperparameters are: "penalty = ", "mixture = "
-             mixture = tune() #"tune()" function fine-tunes "penalty" and "mixture" hyperparameters for us
+  # Specifying linear regression as our model type, asking to tune the hyperparameters penalty and mixture
+  linear_reg(penalty = tune(), #"tune()" function fine-tunes "penalty" and "mixture" hyperparameters for us
+             mixture = tune() #at this stage, we don't specify any number in the tune() function
              ) %>% #"linear_reg()" is the overall model type #thisfunction comes from "parsenip" package
   # Specify the engine
   set_engine("glmnet") #set_engine("glmnet"): The engine here specifies which package (glmnet, in this case) we specifically want to use to apply the "linear_reg" model type #Engine = specific package that we want to use to model the model type
