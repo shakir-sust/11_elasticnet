@@ -571,7 +571,6 @@ final_spec %>%
   rmse(strength_gtex, .pred) %>%
   bind_rows(
     
-    
     # R2
     final_spec %>%
       fit(strength_gtex ~ .,
@@ -602,41 +601,46 @@ It does not always happen this way, but it is very common to see this.
 
 Why?
 
-We would expect our model to make better predictions on the training set because it was trained on that. So, it is expected that the metrics on the trained set to be better than the test set, because when we trained the model, it was unaware of the test set data (i.e., it had not seen the data, so it's new information for the model). Since the trained model had not seen the data on the test set, we use the fit metrics on the *test set* to assess performance for the predictive ability of the model.
+We would expect our model to make better predictions on the training set because it was trained on that. So, it is expected that the fit metrics on the trained set to be better than the fit metrics of the test set, because when we trained the model, it was unaware of the test set data (i.e., it had not seen the data, so it's new information for the model). Since the trained model had not seen the data on the test set, we use the fit metrics on the *test set* to assess performance for the predictive ability of the model.
 
 Regardless of how simple or complex a Machine Learning model is, we should always expect to see a predicted by observed plot, especially on the test set.
 
 Predicted vs. observed plot: only on the test set  
+
 ```{r}
+
 final_fit %>%
   collect_predictions() %>%  #will come in exam as fill in the blanks
   ggplot(aes(x = strength_gtex, #will come in exam as fill in the blanks: "strength_gtex" on x
              y = .pred)) + #will come in exam as fill in the blanks: ".pred" on y-axis
   geom_point() +
-  geom_abline() + #will come in exam as fill in the blanks #geom_abline(): to add one-to-one line (black line) #something that is very informative in a predicted vs. observed plot is to have a one-to-one line
+  geom_abline() + #will come in exam as fill in the blanks #geom_abline(): to add one-to-one line (black line) #something that is very informative in a predicted vs. observed plot is to have this one-to-one line
   geom_smooth(method = "lm") +
   scale_x_continuous(limits = c(20, 40)) +
-  scale_y_continuous(limits = c(20, 40)) +
+  scale_y_continuous(limits = c(20, 40)) 
   
 ```
 
-We always want to see this predicted vs. observed plot for only on the test set in Machine Learning.
+**This predicted vs. observed plot for only on the test set.** 
+We always want to see **this predicted vs. observed plot for only on the test set** in Machine Learning.
 
-In predicted vs. observed plot (only on the test set), the black line is the one-to-one line. We have strength in the x-axis and the predicted values coming from the model on the y-axis. As we see, maybe the range between 27 - 32 is okayish predicted, but when we have high and low strength values (on the two tails of the blue fitted line), the model is not doing a good job. What we would like to see if these points (on the blue line) were really close to the (black) one-to-one line, meaning that what was observed was really close to what the model is predicting. In our case, it's okayish. And we were kind of expecting this because based on the R2 (= 0.13) we would not expect a high correlation.
+In predicted vs. observed plot (only on the test set), the black line is the one-to-one line. We have strength in the x-axis and the predicted values coming from the model on the y-axis. As we see, maybe the range between 27 - 32 is okayish predicted, but when we have either high or low strength values (on the two tails of the blue fitted line), the model is not doing a good job. What we would like to see if these points (on the blue line) were really close to the (black) one-to-one line, meaning that what was observed was really close to what the model is predicting. In our case, it's okayish. And we were kind of expecting this because based on the R2 (= 0.13) we would not expect a very high correlation.
 
-We always want to see this predicted vs. observed plot for only on the test set in Machine Learning, because giving RMSE and R2 is good metrics but this visual assessment understanding is important to have (even though the RMSE and R2 is coming from the blue line, but seeing the plot is more important to understand the shortcomings of the model). 
+We always want to see this predicted vs. observed plot for only on the test set in Machine Learning, because giving only RMSE and R2 is good metrics, but this visual assessment understanding is important to have (even though the RMSE and R2 is coming from the blue line, but seeing the plot is more important to understand the shortcomings of the model). 
 
 Coefficients:  
 ```{r}
 final_spec %>%
   fit(strength_gtex ~ .,
-         data = bake(weather_prep, weather)) %>% #The "bake()" function takes the entire "weather" data set and applies the prepared recipe "weather_prep" to it.
+         data = bake(weather_prep, weather)) %>% #The "bake()" function takes the whole "weather" data set and applies the prepared recipe "weather_prep" to it.
   tidy() %>% #to make the data format tidy i.e., tibble
   arrange(desc(estimate)) #to arrange by the descending order of the "estimate" (= slope)
 
 ```
 
-From the output, we see that the mean minimum temperature in September (mean_tmin.c_Sep) had a very high coefficient (estimate = 1.335097e-01) in the model, which probably means that it has a large impact on predicting strength among all other predictor variables. 
+In the output, the "estimate" column gives the slope coefficients of each predictor variables in the model. 
+
+From the output, we see that the mean minimum temperature in September (mean_tmin.c_Sep) had a very high coefficient (estimate = 1.335097e-01) in the model, which probably means that it has a large impact on predicting strength (among all other predictor variables). 
 
 Variable importance plot: making a plot of the most important variables
 
@@ -660,9 +664,9 @@ final_spec %>%
   labs(y = NULL)
     
 ```
-The Variable importance plot shows the importance of different variables in our model, and whether they had a positive or negative effect on predicting strength. Variable importance plot is also a common plot to see in elastic net machine learning model.
+The Variable importance plot shows the importance of different variables in our model, and whether they had a positive or negative effect on predicting fiber strength. Variable importance plot is also a common plot to see in elastic net machine learning model.
 
-**Therefore, tmin in September (positive effect), and tmax in September (negative effect) were the most important variables affecting cotton fiber strength.**  
+**Therefore, tmin in September (positive effect), and tmax in July (negative effect) were the most important variables affecting cotton fiber strength.**  
 
 Mean minimum temperature in September and May had a positive effect on the fiber strength i.e., If there was an increase in the minimum temperature in September and May (on the average), there was a positive effect on fiber strength. 
 
