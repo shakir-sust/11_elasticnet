@@ -381,26 +381,28 @@ resampling_foldcv$splits[[1]] #[From the output] On the 1st fold, we have 438 fo
 #resampling_foldcv$splits[[2]]
 
 ```
-On the output, we have 10 rows because we asked for 10 folds (if we asked for a different number of folds, we would get that number of rows). In a 10 fold cross-validation, we take our training data -- 90% of our rows are gonna be used to train the model -- that means applying that 90% of the data of our training set to each of the combinations on the grid, and then getting the R2 and RMSE based on the assessment set which is the other part of the fold (the 10% remaining that we did not use for training). 
-
-If we pull out the "splits" of the 1st fold ( resampling_foldcv$splits[[1]] ), we see that there are a total of 487 observations (because that's the size of our training set), then for the training component of this 1st fold, it has 438 of those observations and 49 for the assessment (these 49 observations are gonna be used for the R2 and RMSE of the predicted by observed to give us the best model).  
-
-If we pull out the "splits" of the 2nd fold ( resampling_foldcv$splits[[2]] ), it has the same numbers for <Analysis/Assess/Total> = <438/49/487> data as the 1st fold, but it's gonna be slightly different data that goes into the training and assessment set because they are switching the folds. So, in each one of these iterations, one of the folds are kept for assessment and all the other folds are used for training. But then the one that was used for assesssment for the 1st fold goes back and a different one comes out on each one of the folds. 
 
 On each fold, we'll use **437** observations for training and **49** observations to assess performance.    
+
+On the output, we have 10 rows because we asked for 10 folds (if we asked for a different number of folds, we would get that number of rows). In a 10 fold cross-validation, we take our training data -- 90% of our rows are gonna be used to train the model -- that means applying that 90% of the data of our training set to each of the combinations on the grid, and then getting the R2 and RMSE based on the assessment set which is the other part of the fold (the 10% remaining that we did not use for training). 
+
+If we pull out the "splits" of the 1st fold ( resampling_foldcv$splits[[1]] ), we see that "<Analysis/Assess/Total> = <438/49/487>" there are a total of 487 observations (because that's the size of our training set), then for the training component of this 1st fold, it has 438 of those observations and 49 for the assessment (these 49 observations are gonna be used for the R2 and RMSE of the predicted by observed to give us the best model).  
+
+If we pull out the "splits" of the 2nd fold ( resampling_foldcv$splits[[2]] ), it has the same numbers for <Analysis/Assess/Total> = <438/49/487> data as the 1st fold, but it's gonna be slightly different data that goes into the training and assessment set because they are switching the folds. So, in each one of these iterations, one of the folds are kept for assessment and all the other folds are used for training. But then the one that was used for assessment for the 1st fold goes back and a different one comes out on each one of the folds. 
+
 
 Now, let's perform the grid search below:  
 
 ```{r enet_grid_result}
 
-enet_grid_result <- tune_grid(enet_spec,
+enet_grid_result <- tune_grid(enet_spec, #enet_spec: the model where we set out model type
                               preprocessor = weather_recipe, #we specify the object for recipe under "preprocessor =" argument
                               grid = enet_grid, #we specify the object that has the grid that we wanna evaluate
                               resamples = resampling_foldcv #we specify the object that has resampling strategy 
                               )
 
 
-#it will take some time to run "enet_grid_result", because it is evaluating 121 combinations of hyperparameters and each one of these combinations are being evaluated 10 times. So, it is basically running (121 x 10 =) 1,210 models. It's going to each point of the grid, evaluating each one of them 10 times for each fold, and creating an R2 and RMSE out of it. So, it will take a couple of minutes to run it.
+#it will take some time to run "enet_grid_result", because it is evaluating 121 combinations of hyperparameters and each one of these combinations are being evaluated 10 times. So, it is basically running (121 x 10 =) 1,210 models. It's going to each point of the grid, evaluating each one of them 10 times, one for each fold, and then creating R2 and RMSE out of it. So, it will take a couple of minutes to run it.
 
 enet_grid_result #In the output, we still have our 10 folds and "splits" for each fold, and aditinally we have ".metrics" and ".notes"  
 
@@ -439,8 +441,6 @@ What penalty and mixture values created lowest RMSE?  rewatch video
 
 From the output graph, it looks like having a penalty around 1 with a mixture of 0  gave us the best model (because it has the lowest RMSE). So we should choose this combination (if we choose RMSE as the metric to decide): penalty = 1; mixture = 0.
 
-
-
 Now, let's look into R2 (higher is better):  
 
 ```{r R2}
@@ -456,14 +456,14 @@ enet_grid_result %>%
   labs(y = "R2")
 ```
 
-[ Note: While using R2, the higher the better. From the output graph, the highest R2 we got was for a penalty around 1 and  a mixture of 0.1.
+[Note: While using R2, the higher the better. From the output graph, the highest R2 we got was for a penalty around 1 and  a mixture of 0.1.
 
 It is important to note that, if we use rmse (RMSE) as the fit metric, it gives us a different model as the best model as compared to rsq (R2) being the fit metric to decide. Normally, we would use/choose one of these metrics (RMSE or R2) to choose the model that we want to go with. Perharps there may a specific reason why we would want to use one over the other. But as long as we explain a given metric and tell them what it is, that should be sufficient to publish a paper. ] 
 
 What penalty and mixture values created lowest RMSE?  
 It seems that our best model is with hyperparameters set to:  
   - mixture = 0  
-  - penalty = 0  
+  - penalty = 0  [ask Dr. Bastos: what does he mean here?]
   
 Up to this point, we just visually assessed what was the combination of mixture and penalty ("mixture" and "penalty" are the hyperparameters for the elastic net model) that gives us the best predictive model as assessed on our assessment set (notice that we have not used our "test set" yet)
 
@@ -488,6 +488,8 @@ best_r2 <- enet_grid_result %>%
 best_r2
 
 ```
+
+Ask Dr. Bastos: Why do we get different results each time I clean the environment and rerun all chunks above?
 
 From the output, we see that the best predictive model (that produced the highest R2: Preprocessor1_Model013) has a penalty of 1 and mixture of 0.1. 
 
