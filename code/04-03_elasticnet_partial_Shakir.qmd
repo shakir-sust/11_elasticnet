@@ -489,7 +489,7 @@ best_r2
 
 ```
 
-Ask Dr. Bastos: Why do we get different results each time I clean the environment and rerun all chunks above?
+[Why do we get different results each time I clean the environment and rerun all chunks above? Answer: Maybe one of the chunks had some randomness component to it, and was run more than once.] 
 
 From the output, we see that the best predictive model (that produced the highest R2: Preprocessor1_Model013) has a penalty of 1 and mixture of 0.1. 
 
@@ -508,15 +508,19 @@ Let's use the hyperparameter values that optimized R2 to fit our final model.
 ```{r final_spec}
 
 final_spec <- linear_reg(penalty = 0.7,
-                         mixture = 0) %>%
+                         mixture = 0) %>% #Based on R2, we chose mixture = 0, penalty = 0.7 
   set_engine("glmnet")
 
 final_spec
 
+#Notice that: the piece of code in the above code chunk is completely unaware of any data (training data or test data)
+
 ```
 
+  
+
 ## 3. Validation  
-Now that we determined our best model, let's do our **last fit** (= train with the "penalty" and "mixture" hyperparameters of elastic net model to the entire data set. Up to this point, the training set has been resampled i.e,. we have not used these "penalty" and "mixture" hyperparameters in the entire training set yet. It was resampled in 10 folds and and we rand those 10 folds which had portion of the training and another part of it was used for assessment. Now, our last fit is gonna take these hyperparameter values and fit the model one last time to the entire training set at once, and then based on that model it's now gonna use the model to predict our test set, to give us the actual predictive ability metrics of this model i.e., actual rsq and rmse on the test set. Notice we are just bringing the test set at this "validation" stage).
+Now that we determined our best model, let's do our **last fit** (= train the entire data set with the optimal values of "penalty" and "mixture" hyperparameters of elastic net model. Up to this point, the training set has been resampled i.e,. we have not used these "penalty" and "mixture" hyperparameters in the entire training set yet. It was resampled in 10 folds and and we ran those 10 folds which had portion of the training and another part of it was used for assessment. Now, our last fit is gonna take these hyperparameter values and fit the model one last time to the entire training set at once, and then based on that model it's now gonna use the model to predict our test set, to give us the actual predictive ability metrics of this model i.e., actual rsq and rmse on the test set. Notice we are just bringing the test set at this "validation" stage).
 
 This means 2 things:  
   - Traninig the optimum hyperparameter values on the **entire training set**  
@@ -532,14 +536,14 @@ final_fit <- last_fit(final_spec, #specifying the actual data
                       )
 
 final_fit %>%
-  collect_predictions() #to collect the predictions of the model that was used on the entire training set but getting the predictions on the test set, which we need to assess the model predictive ability
+  collect_predictions() #to collect the predictions of the model that was used on the entire training set but getting the predictions on the test set, which we need here to assess the model predictive ability
 
 
 ```
 
-Why 212 observations?  
+Why 211 rows/observations?  
 
-Because the test set had 211 rows (if we go all the way to the begining, we will see that the test set had 211 rows, and these predictions here are based on the test set. The output contains a ".pred" column which is the prediction of the model for what would be the strength_gtex for the test set, and then we also have a "strength_gtex" column which is the actual observed data for the fiber strength that we brought into the model. So, now we have our observed data (strength_gtex) and our predicted data (.pred) on the test set which has not been seen by the model during training i.e., it was independent of the traiing set  ).  
+Because the test set had 211 rows (if we go all the way to the begining, we will see that the test set had 211 rows), and these predictions here are based on the test set. The output contains a ".pred" column which is the prediction of the model for what would be the strength_gtex for the test set, and then we also have a "strength_gtex" column which is the actual observed data for the fiber strength that we brought into the model. So, now we have our observed data (strength_gtex) and our predicted data (.pred) on the test set which has not been seen by the model during training i.e., it was independent of the training set.  
 
 Metrics on the **test set**:  
 
@@ -556,6 +560,7 @@ On the test set, we have rmse = 3.0295966 and rsq = 0.1322989 (fit metrics of th
 Metrics on **train set** (for curiosity and compare to test set):  
 
 ```{r}
+
 # RMSE
 final_spec %>%
   fit(strength_gtex ~ .,
@@ -575,7 +580,6 @@ final_spec %>%
       augment(new_data = bake(weather_prep, 
                               weather_train)) %>% 
       rsq(strength_gtex, .pred)
-    
   )
 
 ```
