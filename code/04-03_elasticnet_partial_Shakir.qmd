@@ -324,6 +324,9 @@ enet_spec
 ```
 Notice how the main arguments above do not have a value **yet**, because they will be tuned.  
 
+In the output, 
+"Linear Regression Model Specification (regression)": here we see "regression" because out y variable is numerical; if our y variable were categorcal, then it would say "classification". 
+
 ### b. Hyper-parameter tuning  
 
 [Note: There are 2 ways of doing fine-tuning: one is to create a fixed grid, the other one is to create a sequential search of a given grid. Today we are gonna implement the fixed grid approach.]
@@ -369,7 +372,7 @@ Let's define our resampling strategy (only on the training set) below, using a 1
 ```{r resampling_foldcv}
 
 resampling_foldcv <- vfold_cv(weather_train, #we are giving only the training set (not the whole dataset)
-                              v = 10 #v = 10: number of folds that we wannd do #10 is a prettey common number of folds
+                              v = 10 #v = 10: number of folds that we wanna do #10 is a prettey common number of folds
                               )
 
 resampling_foldcv
