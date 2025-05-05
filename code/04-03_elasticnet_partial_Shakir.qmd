@@ -77,7 +77,7 @@ However, ridge regression does not perform feature selection and will **retain a
 
 Therefore, a ridge model is good if you believe there is a need to retain all features in your model yet reduce the noise that less influential variables may create (e.g., in smaller data sets with severe multicollinearity).   
 
-If greater interpretation is necessary and many of the features are redundant or irrelevant then a lasso or elastic net penalty may be preferable.
+If greater interpretation is necessary and many of the features are redundant or irrelevant, then a lasso or elastic net penalty may be preferable.
 
 ## Very Important Note:
 
@@ -581,7 +581,10 @@ final_spec %>%
       rsq(strength_gtex, .pred)
   )
 
+# ?augment
+
 ```
+
 From the output, 
 On the training set, we have rmse = 2.8547324	 and rsq = 0.1579303	
 
@@ -618,7 +621,9 @@ final_fit %>%
   geom_smooth(method = "lm") +
   scale_x_continuous(limits = c(20, 40)) +
   scale_y_continuous(limits = c(20, 40)) 
-  
+
+# ?scale_x_continuous # "scale_x_continuous()" and "scale_y_continuous()" : Positions scales for continuous data (x & y
+
 ```
 
 **This predicted vs. observed plot for only on the test set.** 
@@ -628,8 +633,10 @@ In predicted vs. observed plot (only on the test set), the black line is the one
 
 We always want to see this predicted vs. observed plot for only on the test set in Machine Learning, because giving only RMSE and R2 is good metrics, but this visual assessment understanding is important to have (even though the RMSE and R2 is coming from the blue line, but seeing the plot is more important to understand the shortcomings of the model). 
 
-Coefficients:  
+**Coefficients:**  
+
 ```{r}
+
 final_spec %>%
   fit(strength_gtex ~ .,
          data = bake(weather_prep, weather)) %>% #The "bake()" function takes the whole "weather" data set and applies the prepared recipe "weather_prep" to it.
@@ -642,7 +649,7 @@ In the output, the "estimate" column gives the slope coefficients of each predic
 
 From the output, we see that the mean minimum temperature in September (mean_tmin.c_Sep) had a very high coefficient (estimate = 1.335097e-01) in the model, which probably means that it has a large impact on predicting strength (among all other predictor variables). 
 
-Variable importance plot: making a plot of the most important variables
+**Variable importance plot:** making a plot of the most important variables
 
 ```{r}
 
@@ -659,7 +666,7 @@ final_spec %>%
   ggplot(aes(x = Importance, 
              y = Variable, 
              fill = Sign)) +
-  geom_col() +
+  geom_col() + # barchart
   scale_x_continuous(expand = c(0, 0)) +
   labs(y = NULL)
     
